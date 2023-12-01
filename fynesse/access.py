@@ -40,12 +40,21 @@ class Database:
         return conn
 
     def list_existing_databases(self):
+        """
+        List existing databases
+        """
         return self.execute("SHOW DATABASES")
 
     def use_database(self, db_name):
+        """
+        Use database called db_name
+        """
         self.execute(f"USE {db_name};")
 
     def execute(self, sql, verbose=False):
+        """
+        Executes provided sql query and returns rows
+        """
         cur = self.conn.cursor()
         if verbose:
             print(f"Execute: {sql}")
@@ -53,6 +62,9 @@ class Database:
         return cur.fetchall()
 
     def execute_to_df(self, sql):
+        """
+        Executes provided sql query and returns result as a DataFrame
+        """
         cur = self.conn.cursor()
         cur.execute(sql)
         rows = cur.fetchall()
@@ -60,12 +72,21 @@ class Database:
         return pd.DataFrame(rows, columns=cols)
 
     def get_processlist(self):
+        """
+        Returns the current process list
+        """
         return self.execute_to_df("SHOW FULL PROCESSLIST")
 
     def kill_process(self, process_num):
+        """
+        Kills process with process_num
+        """
         self.execute(f"KILL {process_num}")
 
     def create_database(self, db_name="property_prices"):
+        """
+        Create a database
+        """
         self.execute(
             f"""
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -76,11 +97,14 @@ USE `{db_name}`;
         )
 
     def show_indexes(self, table_name):
+        """
+        Returns the indexs for table_name
+        """
         return self.execute_to_df(f"SHOW INDEXES FROM {table_name};")
 
     def create_index(self, table_name, columns, index_name=None):
         """
-        columns: list of column name strings
+        Creates an index for table_name over provided columns
         """
         if index_name:
             self.execute(
@@ -94,6 +118,9 @@ USE `{db_name}`;
             )
 
     def create_table(self, table_name, create_table_cmd, csv_files, index_columns=[]):
+        """
+        Creates a table within the database
+        """
         if input(
             f"Are you sure you want to (re)create table {table_name}? This will overwrite any existing tables with the same name and may take a long time."
         ).lower() not in ["y", "yes"]:
@@ -237,11 +264,17 @@ CREATE TABLE IF NOT EXISTS `prices_coordinates_data` (
         )
 
     def get_columns(self, table):
+        """
+        Returns column names of table
+        """
         cols = self.execute(f"SHOW COLUMNS FROM {table}")
         col_names = [c[0] for c in cols]
         return col_names
 
     def rand_sample(self, table, n=10, seed=None):
+        """
+        Gets n random samples from a table
+        """
         rows = []
         m = self.execute(f"SELECT MAX(db_id) FROM {table}")[0][0]
         return self.execute_to_df(
@@ -262,9 +295,6 @@ CREATE TABLE IF NOT EXISTS `prices_coordinates_data` (
     def select_top(self, table, n):
         """
         Query n first rows of the table
-        :param conn: the Connection object
-        :param table: The table to query
-        :param n: Number of rows to query
         """
         return self.execute(f"SELECT * FROM {table} LIMIT {n};")
 
@@ -276,9 +306,6 @@ CREATE TABLE IF NOT EXISTS `prices_coordinates_data` (
     def upload_file(self, table, file_name):
         """
         Upload a file to the table
-        :param conn: the Connection object
-        :param table: The name of the table to upload to
-        :param file_name: name of file to upload
         """
         print(f"Uploading {file_name} to {table}")
         cur = self.conn.cursor()
@@ -292,6 +319,9 @@ LINES STARTING BY '' TERMINATED BY '\n';
         print(f"Data loaded successfully into table `{table}` from '{file_name}'.")
 
     def get_file_from_url(self, file_path, url, verbose=False):
+        """
+        Downloads a file specified by its url
+        """
         if not os.path.exists(file_path):
             with open(file_path, "wb") as out_file:
                 print(f"Downloading file {file_path} from {url}")

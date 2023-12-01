@@ -16,6 +16,9 @@ from shapely.geometry import Point
 
 
 def km_to_degrees(km):
+    """
+    Approximately converts km to degrees
+    """
     # Circumference of the Earth is ~40,000
     # 1 degree is around 40,000/360=111km
     return km / (40000 / 360)
